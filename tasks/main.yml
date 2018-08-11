@@ -1,0 +1,41 @@
+---
+- name: check install_path
+  stat: path={{ splunk_check_path }}
+  register: splunk_path_result
+
+
+- name: checking if splunk core is already installed
+  debug: msg='splunk is already installed under {{ splunk_path }}'
+  when: splunk_path_result.stat.exists
+
+- block:
+
+    - name: download splunk binary to S3
+      get_url: dest=
+               url={{ splunk_binary_url }}
+
+    - name: Make the install dir accessible by splunkp
+      file: path="{{ install_dir }}" state=directory mode=0775
+
+    - name: copy splunk binary from S3 to /tmp location
+
+
+    - name: Make the install dir accessible by splunk ID
+      file: path="{{ install_dir }}" state=directory mode=0775
+
+    - name: install splunk binary
+      unarchive: src=/tmp/{{splunk_binary}}
+                dest={{ install_dir }}
+                owner={{ splunk_owner }}
+                group={{ splunk_group }}
+                remote_src=yes
+
+    - name: restart_splunk
+      command: '{{ install_dir }}/splunk/bin/splunk restart'
+      async: 1000
+      poll: 0
+      register: start_sleeper
+      changed_when: True
+      become_user:  "{{ splunk_owner }}"
+
+  when: ((splunk_path_result.stat.exists == false))
