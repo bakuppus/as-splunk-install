@@ -1,0 +1,27 @@
+---
+- name: Checking if splunk is installed
+  stat:
+    path: "{{ splunk_home }}/bin/splunk"
+  register: splunk_installed
+
+- name: Splunk is installed
+  debug:
+    msg: "Splunk is already installed under {{ splunk_home }}"
+  when: splunk_installed.stat.exists
+
+- block:
+
+   - name: Install Splunk
+     unarchive:
+       src: "{{ stage_dir }}/{{ splunk_pkg_file }}"
+       dest: /opt/
+       remote_src: yes
+       owner: "{{ splunk_user }}"
+       group: "{{ splunk_group }}"
+       creates: "{{ splunk_home }}/bin/splunk"
+       become: yes
+
+   - name: Start splunk service
+     notify: Restart splunk
+
+  when: splunk_installed.stat.exists == false

@@ -1,0 +1,6 @@
+---
+# Post installation tasks
+- name: Clean up
+  file:
+    path: "{{ stage_dir }}"
+    state: absent

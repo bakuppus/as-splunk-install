@@ -1,0 +1,21 @@
+---
+# Create staging directory if it doesn't exist
+- name: Create staging directory
+  file:
+    path: "{{ stage_dir }}"
+    state: directory
+    mode: 0755
+
+- name: Stat file exists
+  stat:
+    path: "{{ stage_dir }}/{{ splunk_pkg_file }}"
+  register: splunk_installer_exists
+
+- name: Download and stage splunk binaries
+  aws_s3:
+    bucket: "{{ s3_bucket }}"
+    object: "{{ splunk_pkg_s3_key }}"
+    dest: "{{ stage_dir }}/{{ splunk_pkg_file }}"
+    mode: get
+  become: yes
+  when: splunk_installer_exists.stat.exists == false

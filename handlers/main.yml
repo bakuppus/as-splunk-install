@@ -1,0 +1,8 @@
+---
+# Restart splunk
+- name: Restart splunk
+  service:
+    name: splunk
+    state: restarted
+  become: yes
+  become_user: {{ splunk_user }}
